@@ -15,12 +15,21 @@ namespace Api.Data.Mapping
             builder.HasIndex(p=>p.Email)
                 .IsUnique();
 
+            builder.Property(p => p.Id)
+                .HasColumnType("uniqueidentifier");
+
             builder.Property(p=>p.Name)
                 .IsRequired()
                 .HasMaxLength(60);
 
             builder.Property(p=>p.Email)
                 .HasMaxLength(100);
+
+            builder.Property(p => p.CreateAt)
+                .HasColumnType("datetime");
+
+            builder.Property(p => p.UpdateAt)
+                .HasColumnType("datetime");
         }
     }
 }

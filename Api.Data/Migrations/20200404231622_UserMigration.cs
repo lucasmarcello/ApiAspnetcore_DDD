@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-using System;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Data.Migrations
 {
-    public partial class FirstMigration : Migration
+    public partial class UserMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -11,9 +11,9 @@ namespace Data.Migrations
                 name: "User",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
-                    CreateAt = table.Column<DateTime>(nullable: true),
-                    UpdateAt = table.Column<DateTime>(nullable: true),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "datetime", nullable: true),
+                    UpdateAt = table.Column<DateTime>(type: "datetime", nullable: true),
                     Name = table.Column<string>(maxLength: 60, nullable: false),
                     Email = table.Column<string>(maxLength: 100, nullable: true)
                 },
@@ -26,7 +26,8 @@ namespace Data.Migrations
                 name: "IX_User_Email",
                 table: "User",
                 column: "Email",
-                unique: true);
+                unique: true,
+                filter: "[Email] IS NOT NULL");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

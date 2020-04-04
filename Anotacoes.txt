@@ -1,0 +1,36 @@
+Instancia MySQL
+-server: localhost
+-user: root
+-pwd: mudar@123
+
+
+Instancia SQL Server
+-server: SQLEXPRESS2019
+-user: sa
+-pwd: mudar@123
+
+Server=localhost\SQLEXPRESS;Database=master;Trusted_Connection=True;
+
+---------------------------------------------
+
+Para troca de banco de dados, apagar a pasta de parametros de migracao caso esteja dando problema ao atualizar
+Sempre criar nova migracao e atualizar
+-dotnet ef migrations add UserMigration
+-dotnet ef database update
+
+---------------------------------------------
+
+No entityframework core 3.X, nao vem por padrao instalado o comando "dotnet -ef", para instalar executar o comando:
+dotnet tool install --global dotnet-ef --version 3.1.0
+
+
+Atalhos:
+para identacao: shift+alt+F
+
+Melhorias:
+-criar uma tabela de historico
+-criar tabela de alteracoes
+-select com where
+
+
+Diferenças entre "FromService" e "FromBody" da chamada da API
