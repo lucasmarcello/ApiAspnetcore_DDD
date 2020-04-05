@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.CrossCutting.DependencyInjection;
+using Api.Domain.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 namespace Application
@@ -30,7 +34,52 @@ namespace Application
         {
             ConfigureService.ConfigureDependenciesService(services);
             ConfigureRepository.ConfigureDependenciesRepository(services);
+
+            //Configuracao da injecao de dependencia para geracao do token
+            SigningConfigurations signingConfigurations = new SigningConfigurations();
+            TokenConfiguration tokenConfiguration = new TokenConfiguration();
             
+            new ConfigureFromConfigurationOptions<TokenConfiguration>
+            (
+                Configuration.GetSection("TokenConfigurations")
+            ).Configure(tokenConfiguration);
+
+            services.AddSingleton(signingConfigurations);
+            services.AddSingleton(tokenConfiguration);
+
+            //Adicionando servico de autenticacao utilizando JWT
+            services
+            .AddAuthentication(
+                authOptions =>
+                    {
+                        authOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        authOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    })
+            .AddJwtBearer(
+                bearerOptions =>
+                {
+                    bearerOptions.TokenValidationParameters.IssuerSigningKey = signingConfigurations.Key;
+                    bearerOptions.TokenValidationParameters.ValidAudience = tokenConfiguration.Audience;
+                    bearerOptions.TokenValidationParameters.ValidIssuer = tokenConfiguration.Issuer;
+                    bearerOptions.TokenValidationParameters.ValidateIssuerSigningKey = true;
+                    bearerOptions.TokenValidationParameters.ValidateLifetime = true;
+                    bearerOptions.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
+                });
+
+            services
+            .AddAuthorization(
+                auth =>
+                {
+                    auth
+                        .AddPolicy("Bearer",
+                            new AuthorizationPolicyBuilder()
+                                .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                                .RequireAuthenticatedUser().Build()
+                        );
+
+                }
+            );
+
             services.AddControllers();
 
             #region Swagger
@@ -50,6 +99,35 @@ namespace Application
                                 Url = new Uri("https://github.com/lucasmarcello")
                             }
                     });
+
+                c.AddSecurityDefinition(
+                    "Bearer", 
+                    new OpenApiSecurityScheme
+                    {
+                        In = ParameterLocation.Header,
+                        Description = "Entre com o token JWT",
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.ApiKey
+                    });
+
+                c.AddSecurityRequirement
+                (
+                    new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Id = "Bearer",
+                                    Type = ReferenceType.SecurityScheme
+                                }
+                            },
+                            new List<string>()
+                        }
+                    }
+                );
+
             });
 
             #endregion
