@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.CrossCutting.DependencyInjection;
+using Api.CrossCutting.Mappings;
 using Api.Domain.Security;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -32,8 +34,23 @@ namespace Application
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //Injecao de dependencia
             ConfigureService.ConfigureDependenciesService(services);
             ConfigureRepository.ConfigureDependenciesRepository(services);
+
+            //Automapper
+            var config = new AutoMapper.MapperConfiguration
+            (
+                c =>
+                {
+                    c.AddProfile(new DTOToModelProfile());
+                    c.AddProfile(new EntityToDTOProfile());
+                    c.AddProfile(new ModelToEntityProfile());
+                }
+            );
+
+            IMapper mapper = config.CreateMapper();
+            services.AddSingleton(mapper);
 
             //Configuracao da injecao de dependencia para geracao do token
             SigningConfigurations signingConfigurations = new SigningConfigurations();
