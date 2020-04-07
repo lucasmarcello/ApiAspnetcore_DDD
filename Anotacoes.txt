@@ -30,7 +30,7 @@ para identacao: shift+alt+F
 Melhorias:
 -criar uma tabela de historico
 -criar tabela de alteracoes
--select com where
-
+-select com where utilizando "params" no path
+-criaçao de um novo usuario para consumir a API "free"
 
 Diferenças entre "FromService" e "FromBody" da chamada da API
